@@ -1,150 +1,277 @@
+/**
+ * @file Atv_3-SistMercado.c
+ * @author Eduardo Yuji Yoshida Yamada / Deivid da Silva Galvao (eduardoyuji@alunos.utfpr.edu.br/deivid.2002@alunos.utfpr.edu.br)
+ * RAs 2320606/2408740
+ * @brief 
+ * Um supermercado precisa implementar um programa para auxiliar a administracao de seu
+ * estoque, onde diversos paletes sao empilhados. O equipamento permite empilhar no maximo 4 paletes
+ * em 5 locais. Elabore um programa em C implementando uma Pilha Estatica com o seguinte menu de
+   programa:
+   (a) Adicionar novo palete;
+   (b) Remover palete;
+   (c) Sair.
+   
+   Observacoes:
+• Novos paletes devem ser colocados no local com a pilha mais baixa dispon ́ıvel;
+• Ao se remover um palete, retirar do local com a pilha mais alta dispon ́ıvel;
+• Em cada opera ̧c ̃ao (empilhar ou desempilhar) mostrar de qual local (pilha) esta manipulando.   
 
+ * @version 0.1
+ * @date 2022-09-07
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 
-#include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#define TAM 20
 
-#define tamPilha 3 //quantidade de containers em cada local
-#define tamPorto 4 //quantidade de locais do porto seco
+typedef struct 
+{
+    int key;
+    int quantidade;
+    int topo;
+    
+}PilhaLocal;
 
-//define a estrutura que será a pilha
-//a estrutura armazena a indicação do topo da pilha e um vetor com os itens (valores) da pilha
-typedef struct{
-      int topo = 0;
-      int item [tamPilha] ;
-} PILHA;
+typedef struct 
+{
+    int topo;
+}PilhaEstoque;
 
-//retorna se a pilha está vazia ou não
-bool pilhaVazia(PILHA p){
-    if(p.topo == 0) {
-        return true;
-    } else {
-        return false;
-    }
-}
 
-//retorna se a pilha está cheia ou não
-bool pilhaCheia(PILHA p) {
-	int tam = sizeof(p.item)/sizeof(int); //determina o tamanho do vetor
+int menu();
+void inicializaPilha();
+void empilhar();
+bool EstoqueCheio();
+bool EstoqueVazio();
+int verificaPilhaMenor();
+int verificaPilhaMaior();
+int desempilha();
+void imprimePilha();
 
-    if (p.topo < tam) {
-        return false;
-    } else {
-        return true;
-    }
-}
+int main(int argc, char const *argv[])
+{
+    PilhaLocal pilha[5];
+    PilhaEstoque estoque;
+   
 
-//adiciona valor na pilha
-void empilha(PILHA &p, int x){
-    p.item[p.topo++]=x;
-}
+    int escolha = 0;
+    int indicePilha = 0;
+    int n = 0 ;
+    
+    inicializaPilha(pilha, &estoque);   
 
-//remove valor da pilha
-int desempilha(PILHA &p){
-    return p.item[--p.topo];
-}
+// do while pra repetir caso o usuario digite um numero invalido
+// switch case para verificar a escolha
+    do
+    {
+        escolha = menu (n);
 
-//retorna o valor que está em cima na pilha
-int valorTopo(PILHA p) {
-    return p.item[p.topo - 1];
-}
+        switch (escolha)
+        {
+        case 1:
+            indicePilha = verificaPilhaMenor(pilha);
+            printf("O palete sera colocado no local [%d]", indicePilha);
 
-//mostra os valores armazenados na pilha
-void mostraPilha(PILHA p) {
-	cout << "Valores da pilha: ";
-	if (p.topo > 0) {
-        for (int i = 0; i < p.topo; i++) {
-            cout << p.item[i] << " ";
-        }
-    } else {
-        cout << "pilha vazia";
-    }
-	cout << "\n";
-}
+            empilhar(pilha, indicePilha, &estoque);
+            
+            break;
 
-void mostraPorto(PILHA vet[tamPorto]) {
-    for (int i = 0; i < tamPorto; i++) {
-        cout << "Porto " << i+1 << " -> ";
-        mostraPilha(vet[i]);
-    }
-}
+        case 2:
+            indicePilha = verificaPilhaMaior(pilha);  
+            printf("O palete sera retirado do local [%d]", indicePilha);  
+            desempilha(pilha, indicePilha, &estoque);
 
-//determina qual pilha está mais vazia retornando a posição no vetor
-int pilhaMaisVazia(PILHA vet[tamPorto]) {
-    //armazena o menor valor e que pilha (posicao) ele esta
-    int menor = vet[0].topo, posicao = 0;
-    for (int i = 1; i < tamPorto; i++) {
-        if (vet[i].topo < menor) {
-            menor = vet[i].topo;
-            posicao = i;
-        }
-    }
+            break;
 
-    return posicao;
-}
+         case 3:
+            printf("O programa sera encerrado...");
 
-void mostraOpcoes() {
-    cout << "Opcoes disponiveis: " << endl;
-    cout << "0: sair" << endl;
-    cout << "1: adicionar container" << endl;
-    cout << "2: remover   container" << endl;
-    cout << "Digite sua opcao: ";
-}
+            break;     
 
-//verifica se o código está presente em alguma das pilhas do porto
-//se existir retorna a posicao no vetor (local do porto)
-int codigoExiste(PILHA vet[tamPorto], int cod) {
-    for (int i = 0; i < tamPorto; i++) {
-        for (int j = 0; j < vet[i].topo; j++) {
-            if (vet[i].item[j] == cod) {
-                return i;
-            }
-        }
-    }
-    return -1; //se não encontrar o código vai retornar aqui
-}
-
-int main(){
-    PILHA local[tamPorto]; //cria um vetor de pilhas
-    int opcao, codigo;
-
-    while (true) {
-        mostraOpcoes();
-        cin >> opcao;
-        if (opcao == 0) {
+        default:
+            printf("Numero invalido digite novamente...");
             break;
         }
+        
+    } while (escolha != 3);
+    
+    
+    return 0;
+}//main
 
-        cout << "Informe o codigo do container: ";
-        cin >> codigo;
+int menu(int esc){
+    
+    printf("\nBem vindo ao sistema\n");
+    printf("Digite sua escolha: \n");
+    printf(" [1] Adicionar novo palete\n [2] Remover palete \n [3] Sair\n");
+    scanf("%d", &esc);
+    fflush(stdin);
 
-        if (opcao == 1) { //adicionar container
-            if (codigoExiste(local, codigo) != -1) {
-                cout << "Codigo invalido" << endl; //codigo fornecido já existente
-            } else {
-                int posicaoPorto = pilhaMaisVazia(local);
-                if (pilhaCheia(local[posicaoPorto])) {
-                    cout << "Impossivel empilhar!" << endl; //nenhum lugar vago disponível
-                } else {
-                    empilha(local[posicaoPorto],codigo);
-                }
-            }
-        } else { //remover container
-            int posicaoPorto = codigoExiste(local, codigo);
-            if (posicaoPorto == -1) {
-                cout << "Codigo invalido!" << endl; //codigo fornecido não existente
-            } else {
-                if (valorTopo(local[posicaoPorto]) == codigo) {
-                    desempilha(local[posicaoPorto]);
-                } else {
-                    cout << "Impossivel desempilhar!" << endl; //código fornecido não esta no topo da pilha
-                }
-            }
-        }
+    return esc;
+    
+}
 
-        mostraPorto(local);
-        cout << "\n";
+void inicializaPilha(PilhaLocal* p, PilhaEstoque* estoque){
+    for (int i = 0; i < 5; i++)
+    {
+        p[i].topo = 0;
+        p[i].quantidade = 0;
+        estoque->topo = 0;
     }
 
-    return 0;
+}//inicializa
+
+void empilhar(PilhaLocal p[], int i, PilhaEstoque* estoque){
+    //verifica se esta cheia e exibe erro caso esteja
+    if (EstoqueCheio(estoque) == false)
+    {
+    printf("\n Digite o codigo do palete: ");
+    scanf("%d", &p[i].key);  
+    fflush(stdin);
+
+    p[i].topo++;    
+    p[i].quantidade++;
+    estoque->topo++;
+    printf("%d",estoque->topo);
+    }else{
+        printf("\n O estoque esta cheio, nao eh possivel adicionar mais paletes...\n");
+    }
+}
+
+bool EstoqueCheio (PilhaEstoque *estoque){
+    return (estoque->topo == TAM);
+}
+
+int desempilha(PilhaLocal p[], int i, PilhaEstoque* estoque){
+    int aux = -1;
+    //se apilha nao estiver vazia
+    printf("\n%d 1", estoque->topo);
+    if(EstoqueVazio(estoque)==false){
+    // variavel auxiliar recebe o elemento mais recente 
+    aux = p[i].key;
+    // decrementa o indice do topo
+    p[i].topo--;
+    // decrementa a quantidade de elementos
+    p[i].quantidade--;  
+    estoque->topo--; 
+    }else{
+        printf("Erro: nao eh possivel remover pois estah vazia..\n");
+    }
+    return(aux);
+}
+
+int verificaPilhaMenor(PilhaLocal p[]){
+    // varios "for" para verificar o local com menos paletes e retornar o indice 
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 0)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 1)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 2)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 3)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 4)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 5)
+        {
+        return i;
+        }
+    }
+     return-999;
+}
+
+bool EstoqueVazio (PilhaEstoque *e){
+   // printf("\n %d 2", e->topo);
+    return (e->topo == 0);
+}
+
+int verificaPilhaMaior(PilhaLocal p[]){
+    // varios "for" para verificar o local com mais paletes e retornar o indice 
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 5)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 4)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 3)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 2)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 1)
+        {
+        return i;
+        }
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        if (p[i].quantidade == 0)
+        {
+        return i;
+        }
+    }
+    return-999; 
+}
+
+void imprimePilha(PilhaLocal p[], int j){
+    printf("Pilha(Codigos dos paletes) = {");
+    //for (percorre o vetor, imprimindo todas as posições ateh topo -1)
+    int i;
+    for ( i = 0; i < p[i].topo; i++)
+    {
+        printf(" %d ", p[i].key);
+    }
+    printf("}\n");
+        printf("\nQuantidade: %d ", p[j].quantidade);
+   
 }
